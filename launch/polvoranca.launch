@@ -1,0 +1,39 @@
+<launch>
+    <arg name="paused" default="false"/>
+    <arg name="use_sim_time" default="true"/>
+    <arg name="gui" default="true"/>
+    <arg name="verbose" default="true"/>
+    <arg name="debug" default="false"/>
+    <arg name="world" default="$(find minesweepers_gazebo)/worlds/polvoranca.world" />
+
+    <param name="/minesweepers_gazebo/surface_mines_file" value="$(find minesweepers_gazebo)/config/polvoranca/surface_mines.yaml" />
+    <param name="/minesweepers_gazebo/coil_config_file" value="$(find minesweepers_gazebo)/config/polvoranca/coil_config.yaml" />
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch" >
+        <arg name="paused" default="$(arg paused)" />
+        <arg name="use_sim_time" default="$(arg use_sim_time)" />
+        <arg name="gui" default="$(arg gui)" />
+        <arg name="verbose" default="$(arg verbose)" />
+        <arg name="debug" default="$(arg debug)" />
+        <arg name="world_name" default="$(arg world)" />
+    </include>
+
+    <include file="$(find husky_gazebo)/launch/spawn_husky.launch" >
+        <arg name="multimaster" value="false"/>
+        <arg name="robot_namespace" value="/"/>
+
+        <arg name="x" value="-1.0"/>
+        <arg name="y" value="1.0"/>
+        <arg name="z" value="0.0"/>
+        <arg name="yaw" value="0.0"/>
+
+        <arg name="laser_enabled" value="$(optenv HUSKY_LMS1XX_ENABLED false)"/>
+        <arg name="kinect_enabled" value="$(optenv HUSKY_UR5_ENABLED false)"/>
+        <arg name="urdf_extras" value="$(find minesweepers_gazebo)/models/metal_detector/metal_detector.urdf.xacro"/>
+    </include>
+
+    <group if="$(arg gui)">
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find minesweepers_gazebo)/rviz/empty_world.rviz" />
+    </group>
+
+</launch>

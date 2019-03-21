@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <world name="default">
+    <!-- A global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <include>
+      <uri>model://heightmap_polvoranca</uri>
+    </include>
+
+    <plugin name="mine_spawner_plugin" filename="libmine_spawner_plugin.so">
+      <heightmap_model_name>heightmap_polvoranca</heightmap_model_name>
+    </plugin>
+
+    <plugin name="metal_detector_plugin" filename="libmetal_detector_plugin.so">
+      <heightmap_model_name>heightmap_polvoranca</heightmap_model_name>
+      <update_rate>2</update_rate>
+      <min_mine_distance_threshold>1</min_mine_distance_threshold>
+      <measurement_noise_stddev>0.1</measurement_noise_stddev>
+    </plugin>
+
+    <plugin name="minesweepers_jury_plugin" filename="libminesweepers_jury_plugin.so">
+      <minefield_origin>0 0</minefield_origin>
+      <minefield_size>20 20</minefield_size>
+    </plugin>
+  </world>
+</sdf>

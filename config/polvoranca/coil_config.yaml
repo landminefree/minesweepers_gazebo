@@ -1,0 +1,4 @@
+
+robot_frame: base_link
+coil_frames: [left_coil, right_coil]
+

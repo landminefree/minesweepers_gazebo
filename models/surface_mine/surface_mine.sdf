@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+<sdf version='1.5'>
+  <model name='surface_mine'>
+    <pose>0 0 0 0 0 0</pose>
+    <static>true</static>
+    <link name='mine'>
+      <pose>0 0 0 0 0 0</pose>
+      <gravity>1</gravity>
+      <collision name='collision'>
+        <geometry>
+          <box>
+            <size>0.1 0.1 0.1</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='visual'>
+        <geometry>
+          <box>
+            <size>0.1 0.1 0.1</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Black</name>
+          </script>
+        </material>
+      </visual>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>2.0</mass>
+        <inertia>
+          <ixx>0.003</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.003</iyy>
+          <iyz>0</iyz>
+          <izz>0.003</izz>
+        </inertia>
+      </inertial>
+    </link>
+  </model>
+</sdf>

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find metal_detector_msgs)/model/gazebo/metal_detector.urdf.xacro" />
+
+    <metal_detector parent="base_link">
+        <origin xyz="0.35 0.09 0.0" rpy="0 0 ${-90*M_PI/180}"/>
+    </metal_detector>
+
+</robot>
