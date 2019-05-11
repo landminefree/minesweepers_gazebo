@@ -43,16 +43,15 @@ public:
             ROS_FATAL("/minesweepers_gazebo/surface_mines_file parameter not found!");
             return;
         }
-        LoadMinesFromYAML(surface_mines_file);
+        LoadMinesFromYAML(surface_mines_file, surface_mines, surface_mine_cells);
 
-        // TODO: Add buried mines
-        // std::string buried_mines_file;
-        // if (!public_nh.getParam<std::string>("/minesweepers_gazebo/buried_mines_file", buried_mines_file))
-        // {
-        //     ROS_FATAL("/minesweepers_gazebo/buried_mines_file parameter not found!");
-        //     return;
-        // }
-        // buried_mines = LoadMinesFromYAML(buried_mines_file);
+        std::string buried_mines_file;
+        if (!public_nh.getParam("/minesweepers_gazebo/buried_mines_file", buried_mines_file))
+        {
+            ROS_FATAL("/minesweepers_gazebo/buried_mines_file parameter not found!");
+            return;
+        }
+        LoadMinesFromYAML(buried_mines_file, buried_mines, buried_mine_cells);
 
         solution_sub = public_nh.subscribe("/minesweepers_gazebo/mine_map_solution", 2,
                                            &MinesweepersJuryPlugin::SolutionCallback, this);
@@ -77,9 +76,8 @@ public:
         return res;
     }
 
-    void LoadMinesFromYAML(std::string file_name)
+    void LoadMinesFromYAML(std::string file_name, std::vector<Mine>& mines, std::vector<Vector2i>& mine_cells)
     {
-        this->surface_mines.clear();
         // Load the YAML file
         std::vector<YAML::Node> root_doc = YAML::LoadAllFromFile(file_name);
         // Iterate through all documents (one for each robot)
@@ -93,12 +91,12 @@ public:
             Mine m;
             m.X() = mine_doc["x"].as<double>();
             m.Y() = mine_doc["y"].as<double>();
-            this->surface_mines.push_back(m);
+            mines.push_back(m);
 
             Vector2i mine_cell;
             mine_cell.X() = (int)std::floor(m.X()) - minefield_origin.X();
             mine_cell.Y() = (int)std::floor(m.Y()) - minefield_origin.Y();
-            this->surface_mine_cells.push_back(mine_cell);
+            mine_cells.push_back(mine_cell);
 
             std::cout << "Loaded mine " << m << std::endl;
         }
@@ -172,8 +170,10 @@ public:
     void SolutionCallback(const minesweepers_gazebo::MineMapSolutionConstPtr& solution_msg)
     {
         ROS_INFO_STREAM("New solution submitted");
-        ROS_INFO("Surface mines:");
+
         double score = 0.0;
+
+        ROS_INFO("Surface mines:");
         for (const auto& mine_detection : solution_msg->surface_mines)
         {
             ROS_INFO_STREAM("Detection at [" << (int)mine_detection.x << ", " << (int)mine_detection.y << "]");
@@ -198,6 +198,40 @@ public:
             if (good_detection)
             {
                 ROS_INFO("Successful detection of surface mine!");
+                score += 10;
+            }
+            else
+            {
+                ROS_INFO("Wrong detection. False positive!");
+                score -= 2;
+            }
+        }
+
+        ROS_INFO("Buried mines:");
+        for (const auto& mine_detection : solution_msg->buried_mines)
+        {
+            ROS_INFO_STREAM("Detection at [" << (int)mine_detection.x << ", " << (int)mine_detection.y << "]");
+            if (mine_detection.x < 0 || mine_detection.x >= minefield_size.X())
+            {
+                ROS_WARN("X coordinate out if field");
+            }
+            if (mine_detection.y < 0 || mine_detection.y >= minefield_size.Y())
+            {
+                ROS_WARN("Y coordinate out if field");
+            }
+
+            bool good_detection = false;
+            for (const auto mine : buried_mine_cells)
+            {
+                if (mine.X() == mine_detection.x && mine.Y() == mine_detection.y)
+                {
+                    good_detection = true;
+                    break;
+                }
+            }
+            if (good_detection)
+            {
+                ROS_INFO("Successful detection of buried mine!");
                 score += 10;
             }
             else

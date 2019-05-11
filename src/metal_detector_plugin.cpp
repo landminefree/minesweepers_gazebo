@@ -51,16 +51,16 @@ public:
             ROS_FATAL("/minesweepers_gazebo/surface_mines_file parameter not found!");
             return;
         }
-        LoadMinesFromYAML(surface_mines_file);
+        LoadMinesFromYAML(surface_mines_file, surface_mines);
 
-        // TODO: Add buried mines
-        // std::string buried_mines_file;
-        // if (!public_nh.getParam<std::string>("/minesweepers_gazebo/buried_mines_file", buried_mines_file))
-        // {
-        //     ROS_FATAL("/minesweepers_gazebo/buried_mines_file parameter not found!");
-        //     return;
-        // }
-        // buried_mines = LoadMinesFromYAML(buried_mines_file);
+        std::string buried_mines_file;
+        if (!public_nh.getParam("/minesweepers_gazebo/buried_mines_file", buried_mines_file))
+        {
+            ROS_FATAL("/minesweepers_gazebo/buried_mines_file parameter not found!");
+            return;
+        }
+        LoadMinesFromYAML(buried_mines_file, buried_mines);
+
         std::string coil_config_file;
         if (!public_nh.getParam("/minesweepers_gazebo/coil_config_file", coil_config_file))
         {
@@ -107,9 +107,8 @@ public:
         return res;
     }
 
-    void LoadMinesFromYAML(std::string file_name)
+    void LoadMinesFromYAML(std::string file_name, std::vector<Mine>& mines)
     {
-        this->surface_mines.clear();
         // Load the YAML file
         std::vector<YAML::Node> root_doc = YAML::LoadAllFromFile(file_name);
         // Iterate through all documents (one for each robot)
@@ -122,7 +121,7 @@ public:
             Mine m;
             m.X() = mine_doc["x"].as<double>();
             m.Y() = mine_doc["y"].as<double>();
-            this->surface_mines.push_back(m);
+            mines.push_back(m);
             std::cout << "Loaded mine " << m << std::endl;
         }
     }
@@ -195,7 +194,7 @@ public:
             measurement = std::exp(- (0.5 * closest_distance * closest_distance) / (2 * measurement_noise_stddev * measurement_noise_stddev)) / (measurement_noise_stddev * std::sqrt(2*M_PI));
         }
 
-        measurement += gauss_distribution(MetalDetectorPlugin::random_generator);
+        measurement += gauss_distribution(this->random_generator);
         // Limit value to [0, 1]
         measurement = std::min(measurement, 1.0);
         measurement = std::max(measurement, 0.0);
@@ -247,8 +246,8 @@ public:
                         continue;
                     }
                     ignition::math::Vector3d coil_robot_pose(transform.getOrigin().x(),
-                                                       transform.getOrigin().y(),
-                                                       transform.getOrigin().z());
+                                                             transform.getOrigin().y(),
+                                                             transform.getOrigin().z());
                     // ROS_INFO_STREAM("Coil " << coil_frame << " pose: " << coil_robot_pose);
                     ignition::math::Vector3d coil_world_pose = robot_model->WorldPose().Pos() + coil_robot_pose;
                     double measurement = MetalMeasurement(coil_world_pose);
@@ -283,11 +282,10 @@ public:
         if (!_sdf->HasElement("update_rate"))
         {
                 ROS_WARN("Missing parameter <update_rate> in MetalDetectorPlugin. Default to 30Hz");
-                update_time = common::Time(1.0 / 30.0);
-                return;
+                this->update_time = common::Time(1.0 / 30.0);
         }
-        else update_time = common::Time(1.0 / _sdf->GetElement("update_rate")->Get<double>());
-        ROS_INFO_STREAM("update_rate: " << 1.0 / update_time.Double());
+        else this->update_time = common::Time(1.0 / _sdf->GetElement("update_rate")->Get<double>());
+        ROS_INFO_STREAM("update_rate: " << 1.0 / this->update_time.Double());
 
         // Set the previous update time to the load time
         this->previous_time = common::Time::GetWallTime();
@@ -296,19 +294,19 @@ public:
         if (!_sdf->HasElement("min_mine_distance_threshold"))
         {
                 ROS_WARN("Missing parameter <min_mine_distance_threshold> in MetalDetectorPlugin. Default to 1m");
-                min_mine_distance_threshold = 1.0;
+                this->min_mine_distance_threshold = 1.0;
         }
-        else min_mine_distance_threshold = _sdf->GetElement("min_mine_distance_threshold")->Get<double>();
-        ROS_INFO_STREAM("min_mine_distance_threshold: " << min_mine_distance_threshold);
+        else this->min_mine_distance_threshold = _sdf->GetElement("min_mine_distance_threshold")->Get<double>();
+        ROS_INFO_STREAM("min_mine_distance_threshold: " << this->min_mine_distance_threshold);
 
         // Get noise stddev
         if (!_sdf->HasElement("measurement_noise_stddev"))
         {
                 ROS_WARN("Missing parameter <measurement_noise_stddev> in MetalDetectorPlugin. Default to 0.1m");
-                measurement_noise_stddev = 0.1;
+                this->measurement_noise_stddev = 0.1;
         }
-        else measurement_noise_stddev = _sdf->GetElement("measurement_noise_stddev")->Get<double>();
-        ROS_INFO_STREAM("measurement_noise_stddev: " << measurement_noise_stddev);
+        else this->measurement_noise_stddev = _sdf->GetElement("measurement_noise_stddev")->Get<double>();
+        ROS_INFO_STREAM("measurement_noise_stddev: " << this->measurement_noise_stddev);
 
         this->world = _world;
 

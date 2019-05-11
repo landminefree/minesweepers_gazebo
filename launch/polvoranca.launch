@@ -7,6 +7,7 @@
     <arg name="world" default="$(find minesweepers_gazebo)/worlds/polvoranca.world" />
 
     <param name="/minesweepers_gazebo/surface_mines_file" value="$(find minesweepers_gazebo)/config/polvoranca/surface_mines.yaml" />
+    <param name="/minesweepers_gazebo/buried_mines_file" value="$(find minesweepers_gazebo)/config/polvoranca/buried_mines.yaml" />
     <param name="/minesweepers_gazebo/coil_config_file" value="$(find minesweepers_gazebo)/config/polvoranca/coil_config.yaml" />
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch" >
